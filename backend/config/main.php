@@ -37,6 +37,16 @@ return [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
+        'as access' => [
+            'class' => 'yii\filters\AccessControl',
+            'except' => ['site/login', 'site/error'],
+            'rules' => [
+                [
+                    'allow' => true,
+                    'roles' => ['@'],
+                ],
+            ],
+        ],
         /*
         'urlManager' => [
             'enablePrettyUrl' => true,
