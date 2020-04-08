@@ -19,6 +19,11 @@ class UserRepository
             ->andWhere(['status'=>User::STATUS_ACTIVE])->one();
     }
 
+    public function findByNetwork($network, $identity): ?User
+    {
+        return  User::find()->joinWith('userNetworks n')->andWhere(['n.network' => $network, 'n.identity' => $identity])->one();
+    }
+
     public function save(User $user)
     {
         if(!$user->save()){

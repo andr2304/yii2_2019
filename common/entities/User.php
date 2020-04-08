@@ -1,6 +1,8 @@
 <?php
 namespace common\entities;
 
+use common\entities\auth\UserNetworks;
+use lhs\Yii2SaveRelationsBehavior\SaveRelationsBehavior;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
@@ -20,6 +22,8 @@ use yii\web\IdentityInterface;
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
+ *
+ * @property userNetworks[] $userNetworks
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -32,27 +36,27 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function tableName()
     {
-        return '{{%user}}';
+        return '{{%users}}';
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function behaviors()
     {
         return [
             TimestampBehavior::className(),
+            [
+                'class' => SaveRelationsBehavior::className(),
+                'relations' => ['userNetworks'],
+            ],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
+    public function transactions()
     {
         return [
-            ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            self::SCENARIO_DEFAULT => self::OP_ALL,
         ];
     }
 
@@ -65,6 +69,34 @@ class User extends ActiveRecord implements IdentityInterface
         $user->generateAuthKey();
 
         return $user;
+    }
+    public static function signUpByNetwork($network, $identity): self
+    {
+        $user = new self();
+        $user->generateAuthKey();
+        $user->status = User::STATUS_ACTIVE;
+        $user->userNetworks = [UserNetworks::create($network, $identity)];
+
+        return $user;
+    }
+
+    public function attachUserByNetwork($network, $identity): self
+    {
+        $networks = $this->userNetworks;
+        foreach ($networks as $current) {
+            if($current->isFor($network, $identity)) {
+                throw new \DomainException('Network is already attached.');
+            }
+        }
+        $networks[] = UserNetworks::create($network, $identity);
+        $this->userNetworks = $networks;
+    }
+
+
+
+    public function getUserNetworks()
+    {
+        return $this->hasMany(UserNetworks::class, ['user_id' => 'id']);
     }
 
     /**
