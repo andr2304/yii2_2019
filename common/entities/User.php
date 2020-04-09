@@ -70,6 +70,27 @@ class User extends ActiveRecord implements IdentityInterface
 
         return $user;
     }
+
+    public static function createByAdmin($username, $email, $password): self
+    {
+        $user = new self();
+        $user->username = $username;
+        $user->email = $email;
+        $user->setPassword(!empty($password) ? $password : Yii::$app->security->generateRandomString());
+        $user->created_at = time();
+        $user->status = self::STATUS_ACTIVE;
+        $user->generateAuthKey();
+
+        return $user;
+    }
+
+    public function edit($username, $email)
+    {
+        $this->username = $username;
+        $this->email = $email;
+        $this->updated_at = time();
+    }
+
     public static function signUpByNetwork($network, $identity): self
     {
         $user = new self();

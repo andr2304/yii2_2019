@@ -6,6 +6,8 @@
  * Time: 9:30
  */
 
+namespace common\helpers;
+
 class DebugHelper
 {
     public static function dd($param){
