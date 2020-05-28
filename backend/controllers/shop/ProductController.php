@@ -10,6 +10,7 @@ namespace backend\controllers\shop;
 
 
 use backend\forms\search\shop\product\ProductSearch;
+use backend\forms\shop\Product\PhotosForm;
 use backend\forms\shop\Product\ProductCreateForm;
 use backend\forms\shop\Product\ProductEditForm;
 use common\entities\shop\product\Product;
@@ -76,8 +77,22 @@ class ProductController extends Controller
      */
     public function actionView($id)
     {
+        $product = $this->findModel($id);
+
+        $photosForm = new PhotosForm();
+        if ($photosForm->load(Yii::$app->request->post()) && $photosForm->validate()) {
+            try {
+                $this->service->addPhotos($product->id, $photosForm);
+                return $this->redirect(['view', 'id' => $product->id]);
+            } catch (\DomainException $e) {
+                Yii::$app->errorHandler->logException($e);
+                Yii::$app->session->setFlash('error', $e->getMessage());
+            }
+        }
+
         return $this->render('view', [
-            'product' => $this->findModel($id),
+            'product' => $product,
+            'photosForm' => $photosForm,
         ]);
     }
 

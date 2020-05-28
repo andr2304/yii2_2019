@@ -10,16 +10,20 @@ namespace common\useCases\manage\shop;
 
 
 use backend\forms\shop\TagForm;
+use common\dispatchers\EventDispatcherInterface;
 use common\entities\shop\Tag;
+use common\events\shop\CreateTagEvent;
 use common\Reposetories\shop\TegRepository;
 
 class TagService
 {
     public $repository;
+    public $dispatcher;
 
-    public function __construct(TegRepository $repository)
+    public function __construct(TegRepository $repository, EventDispatcherInterface $dispatcher)
     {
         $this->repository = $repository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function create(TagForm $form):Tag
@@ -29,6 +33,7 @@ class TagService
             $form->slug
         );
         $this->repository->save($tag);
+        $this->dispatcher->dispatch(new CreateTagEvent($tag));
         return $tag;
     }
 

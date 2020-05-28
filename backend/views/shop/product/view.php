@@ -1,5 +1,6 @@
 <?php
 
+use backend\forms\shop\Product\PhotosForm;
 use common\entities\shop\product\Product;
 use common\helpers\PriceHelper;
 use kartik\file\FileInput;
@@ -12,7 +13,7 @@ use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
 /* @var $product Product */
-/* @var $photosForm shop\forms\manage\Shop\Product\PhotosForm */
+/* @var $photosForm PhotosForm */
 /* @var $modificationsProvider yii\data\ActiveDataProvider */
 
 $this->title = $product->name;
@@ -63,6 +64,59 @@ $this->params['breadcrumbs'][] = $this->title;
                     ]) ?>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="box" id="photos">
+        <div class="box-header with-border">Photos</div>
+        <div class="box-body">
+
+            <div class="row">
+                <?php foreach ($product->photos as $photo): ?>
+                    <div class="col-md-2 col-xs-3" style="text-align: center">
+                        <div class="btn-group">
+                            <?= Html::a('<span class="glyphicon glyphicon-arrow-left"></span>', ['move-photo-up', 'id' => $product->id, 'photo_id' => $photo->id], [
+                                'class' => 'btn btn-default',
+                                'data-method' => 'post',
+                            ]); ?>
+                            <?= Html::a('<span class="glyphicon glyphicon-remove"></span>', ['delete-photo', 'id' => $product->id, 'photo_id' => $photo->id], [
+                                'class' => 'btn btn-default',
+                                'data-method' => 'post',
+                                'data-confirm' => 'Remove photo?',
+                            ]); ?>
+                            <?= Html::a('<span class="glyphicon glyphicon-arrow-right"></span>', ['move-photo-down', 'id' => $product->id, 'photo_id' => $photo->id], [
+                                'class' => 'btn btn-default',
+                                'data-method' => 'post',
+                            ]); ?>
+                        </div>
+                        <div>
+                            <?= Html::a(
+                                Html::img($photo->getThumbFileUrl('file', 'thumb')),
+                                $photo->getUploadedFileUrl('file'),
+                                ['class' => 'thumbnail', 'target' => '_blank']
+                            ) ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php $form = ActiveForm::begin([
+                'options' => ['enctype'=>'multipart/form-data'],
+            ]); ?>
+
+            <?= $form->field($photosForm, 'files[]')->label(false)->widget(FileInput::class, [
+                'options' => [
+                    'accept' => 'image/*',
+                    'multiple' => true,
+                ]
+            ]) ?>
+
+            <div class="form-group">
+                <?= Html::submitButton('Upload', ['class' => 'btn btn-success']) ?>
+            </div>
+
+            <?php ActiveForm::end(); ?>
+
         </div>
     </div>
 

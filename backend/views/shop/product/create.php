@@ -72,6 +72,18 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
 
     <div class="box box-default">
+        <div class="box-header with-border">Photos</div>
+        <div class="box-body">
+            <?= $form->field($model->photos, 'files[]')->widget(FileInput::class, [
+                'options' => [
+                    'accept' => 'image/*',
+                    'multiple' => true,
+                ]
+            ]) ?>
+        </div>
+    </div>
+
+    <div class="box box-default">
         <div class="box-header with-border">SEO</div>
         <div class="box-body">
             <?= $form->field($model->meta, 'title')->textInput() ?>

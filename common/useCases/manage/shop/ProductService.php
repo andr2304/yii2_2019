@@ -8,6 +8,7 @@
 
 namespace common\useCases\manage\shop;
 
+use backend\forms\shop\Product\PhotosForm;
 use backend\forms\shop\Product\ProductCreateForm;
 use backend\forms\shop\Product\ProductEditForm;
 use common\entities\Meta;
@@ -131,5 +132,35 @@ class ProductService
     {
         $product = $this->products->get($id);
         $this->products->remove($product);
+    }
+
+    public function addPhotos($id, PhotosForm $form): void
+    {
+        $product = $this->products->get($id);
+        foreach ($form->files as $file) {
+            $product->addPhoto($file);
+        }
+        $this->products->save($product);
+    }
+
+    public function movePhotoUp($id, $photoId): void
+    {
+        $product = $this->products->get($id);
+        $product->movePhotoUp($photoId);
+        $this->products->save($product);
+    }
+
+    public function movePhotoDown($id, $photoId): void
+    {
+        $product = $this->products->get($id);
+        $product->movePhotoDown($photoId);
+        $this->products->save($product);
+    }
+
+    public function removePhoto($id, $photoId): void
+    {
+        $product = $this->products->get($id);
+        $product->removePhoto($photoId);
+        $this->products->save($product);
     }
 }
