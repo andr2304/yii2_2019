@@ -1,23 +1,32 @@
 <?php
 namespace frontend\controllers;
 
+use common\useCases\auth\AuthService;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-use common\models\LoginForm;
-use frontend\models\PasswordResetRequestForm;
-use frontend\models\ResetPasswordForm;
-use frontend\models\SignupForm;
-use frontend\models\ContactForm;
+use common\forms\LoginForm;
+use frontend\forms\PasswordResetRequestForm;
+use frontend\forms\ResetPasswordForm;
+use frontend\forms\SignupForm;
+use frontend\forms\ContactForm;
 
 /**
  * Site controller
  */
 class SiteController extends Controller
 {
+    private $auth_service;
+
+    public function __construct(string $id, $module, AuthService $auth_service, array $config = [])
+    {
+        $this->auth_service = $auth_service;
+        parent::__construct($id, $module, $config);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -86,16 +95,21 @@ class SiteController extends Controller
             return $this->goHome();
         }
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        } else {
-            $model->password = '';
+        $form = new LoginForm();
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            try{
+                $user = $this->auth_service->login($form);
+                \Yii::$app->user->login($user, $form->rememberMe ? 3600 * 24 * 30 : 0);
+                return $this->goBack();
+            }catch ( \Exception $e){
+                Yii::$app->session->setFlash('error', $e->getMessage());
+            }
 
-            return $this->render('login', [
-                'model' => $model,
-            ]);
         }
+
+        return $this->render('login', [
+            'model' => $form,
+        ]);
     }
 
     /**
@@ -150,17 +164,20 @@ class SiteController extends Controller
      */
     public function actionSignup()
     {
-        $model = new SignupForm();
-        if ($model->load(Yii::$app->request->post())) {
-            if ($user = $model->signup()) {
-                if (Yii::$app->getUser()->login($user)) {
-                    return $this->goHome();
-                }
+        $form = new SignupForm();
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+
+            try{
+                $user = $this->auth_service->signup($form);
+                Yii::$app->getUser()->login($user);
+                return $this->goHome();
+            }catch (\RuntimeException $exception){
+                Yii::$app->session->setFlash('error', $exception->getMessage());
             }
         }
 
         return $this->render('signup', [
-            'model' => $model,
+            'model' => $form,
         ]);
     }
 

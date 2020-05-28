@@ -12,7 +12,7 @@ return [
     'controllerNamespace' => 'backend\controllers',
     'bootstrap' => [
         'log',
-        'common\bootstrap\SetUp'
+        'common\bootstrap\SetUp',
     ],
     'modules' => [],
     'components' => [
@@ -20,7 +20,7 @@ return [
             'csrfParam' => '_csrf-backend',
         ],
         'user' => [
-            'identityClass' => 'common\models\User',
+            'identityClass' => 'common\entities\User',
             'enableAutoLogin' => true,
             'identityCookie' => ['name' => '_identity-backend', 'httpOnly' => true],
         ],
@@ -51,11 +51,15 @@ return [
             ],
         ],
         'urlManager' => [
+            'class' => 'yii\web\UrlManager',
+            //'hostInfo' => $params['backendHostInfo'],
+            'baseUrl' => '',
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
                 '' => 'site/index',
-                '<_a:login|logout>' => 'site/<_a>',
+                '<_a:login|logout>' => 'auth/<_a>',
+
                 '<_c:[\w\-]+>' => '<_c>/index',
                 '<_c:[\w\-]+>/<id:\d+>' => '<_c>/view',
                 '<_c:[\w\-]+>/<_a:[\w-]+>' => '<_c>/<_a>',
